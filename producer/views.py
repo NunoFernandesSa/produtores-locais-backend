@@ -15,6 +15,21 @@ class ProducerViewSet(viewsets.ModelViewSet):
     serializer_class = ProducerSerializer
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Filter by type/category
+        producer_type = self.request.query_params.get("type")
+        if producer_type:
+            queryset = queryset.filter(type__icontains=producer_type)
+
+        # Filter by city
+        city = self.request.query_params.get("city")
+        if city:
+            queryset = queryset.filter(city__icontains=city)
+
+        return queryset
+
     def get_serializer_context(self):
         """Add request to serializer context"""
         context = super().get_serializer_context()
