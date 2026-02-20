@@ -21,7 +21,7 @@ class Producer(models.Model):
     )
     type = models.JSONField(
         verbose_name="Tipo(s)",
-        help_text='Pode ser: "Legumes" ou ["Fruta", "Legumes"]',
+        help_text='Selecione os tipos de produção (ex: "Legumes", "Fruta")',
         default=list,
         blank=True,
     )
@@ -40,7 +40,7 @@ class Producer(models.Model):
     mobile_phone = models.CharField(
         max_length=20,
         validators=[phone_regex],
-        verbose_name="Telefone Móvel",
+        verbose_name="Telemóvel",
         blank=True,
         null=True,
     )
@@ -136,29 +136,14 @@ class Producer(models.Model):
         verbose_name = "Produtor"
         verbose_name_plural = "Produtores"
         ordering = ["name"]
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["type"]),
+            models.Index(fields=["city"]),
+        ]
 
     def __str__(self):
         return self.name
-
-    def get_type_display(self):
-        """Return a string with the types separated by ' • '"""
-        if isinstance(self.type, list):
-            return " • ".join(self.type)
-        return str(self.type) if self.type else ""
-
-    def get_address(self):
-        """Retorna morada formatada"""
-        parts = []
-        if self.street:
-            street_addr = self.street
-            if self.number:
-                street_addr = f"{self.number}, {self.street}"
-            parts.append(street_addr)
-        if self.city:
-            parts.append(self.city)
-        if self.zip_code:
-            parts.append(self.zip_code)
-        return ", ".join(parts) if parts else "Morada não disponível"
 
 
 class ProducerImage(models.Model):
@@ -173,7 +158,6 @@ class ProducerImage(models.Model):
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Ordem")
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
     producer = models.ForeignKey(
         Producer,
         on_delete=models.CASCADE,
@@ -185,6 +169,9 @@ class ProducerImage(models.Model):
         ordering = ["order", "uploaded_at"]
         verbose_name = "Imagem da galeria"
         verbose_name_plural = "Imagens da galeria"
+        indexes = [
+            models.Index(fields=["producer", "order"]),
+        ]
 
     def __str__(self):
         return f"Imagem de {self.producer.name}"
