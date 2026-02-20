@@ -21,9 +21,34 @@ class ProducerSerializer(serializers.ModelSerializer):
     gallery_images = ProducerImageSerializer(many=True, read_only=True)
     main_image_url = serializers.SerializerMethodField()
 
+    type_display = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
+
     class Meta:
         model = Producer
-        fields = "__all__"
+        fields = [
+            "id",
+            "name",
+            "type",
+            "type_display",  # original type + formatted display
+            "description",
+            "phone",
+            "mobile_phone",
+            "email",
+            "website",
+            "address",  # formatted address
+            "facebook",
+            "instagram",
+            "twitter",
+            "youtube",
+            "tiktok",
+            "main_image_url",
+            "gallery_images",
+            "products",
+            "created_at",
+            "updated_at",
+            "is_active",
+        ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
     def get_main_image_url(self, obj):
@@ -32,27 +57,36 @@ class ProducerSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.main_image.url)
         return None
 
+    def get_type_display(self, obj):
+        """Return a string with the types separated by ' • '"""
+        if isinstance(obj.type, list):
+            return " • ".join(obj.type)
+        return str(obj.type) if obj.type else ""
+
+    def get_address(self, obj):
+        """Return formatted address object"""
+        parts = []
+        if obj.street:
+            street_addr = obj.street
+            if obj.number:
+                street_addr = f"{obj.number}, {obj.street}"
+            parts.append(street_addr)
+        if obj.city:
+            parts.append(obj.city)
+        if obj.zip_code:
+            parts.append(obj.zip_code)
+
+        return {
+            "street": obj.street,
+            "number": obj.number,
+            "city": obj.city,
+            "state": obj.state,
+            "zip_code": obj.zip_code,
+            "formatted": ", ".join(parts) if parts else "Morada não disponível",
+        }
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        # Move main_image_url to main_image
         data["main_image"] = data.pop("main_image_url", None)
         return data
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        # Filter by type/category
-        producer_type = self.request.query_params.get("type")
-        if producer_type:
-            queryset = queryset.filter(type__icontains=producer_type)
-
-        # Filter by city
-        city = self.request.query_params.get("city")
-        if city:
-            queryset = queryset.filter(city__icontains=city)
-
-        # Filter by active status
-        is_active = self.request.query_params.get("is_active")
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active.lower() == "true")
-
-        return queryset
