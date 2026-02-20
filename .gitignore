@@ -1,0 +1,160 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+media
+staticfiles
+
+# Local settings #
+local_settings.py
+.env
+.env.local
+.env.*.local
+
+# API / Environment #
+venv
+env
+ENV
+env.bak
+venv.bak
+.envrc
+
+# Database #
+*.sql
+*.sqlite
+*.sqlite3
+
+# Security #
+**/settings.py.bak
+**/settings.py.old
+.secrets
+secrets.json
+
+# IDE #
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings
+
+# Python #
+*.py[cod]
+__pycache__
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.hypothesis/
+.ruff_cache/
+
+# Django REST Framework #
+browsable_api/
+api_docs/
+
+# Uploads #
+uploads/
+media/
+mediafiles/
+
+# Static files #
+static/
+staticfiles/
+static_root/
+collectstatic/
+media/
+
+# Migrations #
+**/migrations/*.py
+!**/migrations/__init__.py
+**/migrations/*.pyc
+
+# Celery #
+celerybeat-schedule
+celerybeat.pid
+*.pid
+
+# Environments #
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Backup files #
+*.bak
+*.orig
+
+# Logs #
+logs/
+*.log
+
+# Docker #
+docker-compose.override.yml
+Dockerfile.local
+.dockerignore
+
+# VS Code #
+.vscode/
+.history/
+*.code-workspace
+
+# PyCharm #
+.idea/
+*.iml
+*.iws
+out/
+
+# macOS #
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows #
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Project specific #
+# Adiciona aqui pastas específicas do teu projeto
+producer/migrations/*.py
+!producer/migrations/__init__.py
