@@ -36,3 +36,23 @@ class ProducerSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data["main_image"] = data.pop("main_image_url", None)
         return data
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Filter by type/category
+        producer_type = self.request.query_params.get("type")
+        if producer_type:
+            queryset = queryset.filter(type__icontains=producer_type)
+
+        # Filter by city
+        city = self.request.query_params.get("city")
+        if city:
+            queryset = queryset.filter(city__icontains=city)
+
+        # Filter by active status
+        is_active = self.request.query_params.get("is_active")
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == "true")
+
+        return queryset

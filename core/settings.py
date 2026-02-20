@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     # django rest framework
     "rest_framework",
     "corsheaders",
+    # drf yasg
+    "drf_yasg",
     # my apps
     "producer",
 ]

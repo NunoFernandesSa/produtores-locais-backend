@@ -7,5 +7,5 @@ router = DefaultRouter()
 router.register(r"producers", views.ProducerViewSet)
 
 urlpatterns = [
-    path("v1/", include(router.urls)),
+    path("", include(router.urls)),
 ]
