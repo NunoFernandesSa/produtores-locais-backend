@@ -20,23 +20,39 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost", "0.0.0.0"]
 # Application definition
 
 INSTALLED_APPS = [
+    # --- django jazzmin ---
+    "jazzmin",
+    # --- django contrib ---
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # django admin interface
-    "admin_interface",
-    "colorfield",
-    # django rest framework
+    # --- django rest framework ---
     "rest_framework",
     "corsheaders",
-    # drf yasg
+    # --- drf yasg ---
     "drf_yasg",
-    # my apps
+    # --- my apps ---
     "producer",
 ]
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Administração Produtores Locais",
+    "site_header": "Produtores Locais",
+    "site_brand": "🌿 Produtores Locais",
+    "welcome_sign": "Bem-vindo ao Painel de Controlo",
+    "copyright": "Produtores Locais do Minho",
+    "show_ui_builder": True,
+}
+
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly",  # Tema inicial
+    "navbar": "navbar-dark navbar-primary",
+    "sidebar": "sidebar-dark-primary",
+}
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -115,10 +131,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -128,6 +143,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",  # para desenvolvimento
+        "rest_framework.permissions.AllowAny",  # for dev mode
     ]
 }
