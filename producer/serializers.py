@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producer, ProducerImage
+from .models import Producer, ProducerImage, Category
 
 
 class ProducerImageSerializer(serializers.ModelSerializer):
@@ -16,20 +16,33 @@ class ProducerImageSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.image.url)
         return None
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug']
+        read_only_fields = ['id']
 
 class ProducerSerializer(serializers.ModelSerializer):
+    categories = CategorySerializer(many=True, read_only=True)
+    category_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Category.objects.all(),
+        source='categories',
+        required=False
+    )
     gallery_images = ProducerImageSerializer(many=True, read_only=True)
     main_image_url = serializers.SerializerMethodField()
-
-    type_display = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
+    type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Producer
         fields = [
             "id",
             "name",
-            "type",
+            "categories",
+            "category_ids",
             "type_display",  # original type + formatted display
             "description",
             "phone",
@@ -59,9 +72,8 @@ class ProducerSerializer(serializers.ModelSerializer):
 
     def get_type_display(self, obj):
         """Return a string with the types separated by ' • '"""
-        if isinstance(obj.type, list):
-            return " • ".join(obj.type)
-        return str(obj.type) if obj.type else ""
+        return " • ".join([cat.name for cat in obj.categories.all()])
+
 
     def get_address(self, obj):
         """Return formatted address object"""
@@ -83,6 +95,8 @@ class ProducerSerializer(serializers.ModelSerializer):
             "state": obj.state,
             "zip_code": obj.zip_code,
             "formatted": ", ".join(parts) if parts else "Morada não disponível",
+            "latitude": obj.latitude,
+            "longitude": obj.longitude,
         }
 
     def to_representation(self, instance):

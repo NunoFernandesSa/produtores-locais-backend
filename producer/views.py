@@ -19,9 +19,9 @@ class ProducerViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
 
         # Filter by type/category
-        producer_type = self.request.query_params.get("type")
+        producer_type = self.request.query_params.get("category")
         if producer_type:
-            queryset = queryset.filter(type__icontains=producer_type)
+            queryset = queryset.filter(categories__name__icontains=producer_type)
 
         # Filter by city
         city = self.request.query_params.get("city")

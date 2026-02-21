@@ -1,20 +1,7 @@
 from django.contrib import admin
 from django import forms
-from .models import Producer, ProducerImage
+from .models import Category, Producer, ProducerImage
 
-
-TYPE_CHOICES = [
-    ("legumes", "Legumes"),
-    ("fruta", "Fruta"),
-    ("vinho", "Vinho"),
-    ("queijo", "Queijo"),
-    ("mel", "Mel"),
-    ("artesanato", "Artesanato"),
-    ("pao", "Pão"),
-    ("azeite", "Azeite"),
-    ("conservas", "Conservas"),
-    ("carnes", "Carnes"),
-]
 
 admin.site.site_header = "Produtores Locais"
 admin.site.site_title = "Produtores Locais"
@@ -33,11 +20,11 @@ class ProducerImageInline(admin.TabularInline):
 class ProducerAdminForm(forms.ModelForm):
     """Form for Producer model with custom widgets"""
 
-    type = forms.MultipleChoiceField(
-        choices=TYPE_CHOICES,
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        label="Tipo(s)",
+        label="Categoria(s)",
     )
 
     class Meta:
@@ -52,35 +39,53 @@ class ProducerAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.type:
-            # Convert json to list of values
-            if isinstance(self.instance.type, list):
-                self.initial["type"] = [t.lower() for t in self.instance.type]
-            elif isinstance(self.instance.type, str):
-                self.initial["type"] = [self.instance.type.lower()]
+        if self.instance and self.instance.pk:
+            self.initial["categories"] = self.instance.categories.all()
 
-    def clean_type(self):
-        """Converts the list of checkboxes back to JSON"""
-        data = self.cleaned_data.get("type", [])
-        return list(data) if data else []
+    def save(self, commit=True):
+        """Save the form and update categories"""
+        instance = super().save(commit=False)
+        
+        if commit:
+            instance.save()
+        
+        # Update categories based on the form data
+        if self.cleaned_data.get("categories"):
+            instance.categories.set(self.cleaned_data["categories"])
+        else:
+            instance.categories.clear()
+        
+        return instance
+
+
+class CategoryInline(admin.TabularInline):
+    """Inline to add categories directly on producer"""
+    model = Producer.categories.through
+    extra = 1
+    verbose_name = "Categoria"
+    verbose_name_plural = "Categorias"
 
 
 @admin.register(Producer)
 class ProducerAdmin(admin.ModelAdmin):
     form = ProducerAdminForm
     inlines = [ProducerImageInline]
+    
+    raw_id_fields = ['categories']
 
-    list_display = ["name", "get_types", "city", "phone", "email", "is_active"]
+    list_display = ["name", "get_categories", "city", "phone", "email", "is_active"]
 
     # Side filters
-    list_filter = ["is_active", "city", "state", "created_at"]
+    list_filter = ["categories", "is_active", "city", "state", "created_at"]
 
     # Search fields
     search_fields = ["name", "description", "email", "phone", "city"]
 
     # Form sections
     fieldsets = [
-        ("Informação Básica", {"fields": ["name", "type", "description", "is_active"]}),
+        ("Informação Básica", {
+            "fields": ["name", "categories", "description", "is_active"]  # 👈 Mudou de type para categories
+        }),
         (
             "Contactos",
             {
@@ -95,6 +100,11 @@ class ProducerAdmin(admin.ModelAdmin):
                 "classes": ["wide"],
             },
         ),
+        ("Localização no Mapa", {
+            "fields": ["latitude", "longitude"],
+            "classes": ["wide"],
+            "description": "Coordenadas para aparecer no mapa (opcional)"
+        }),
         (
             "Redes Sociais",
             {
@@ -129,32 +139,26 @@ class ProducerAdmin(admin.ModelAdmin):
     # Custom actions
     actions = ["activate_producers", "deactivate_producers"]
 
-    # Methods for list_display
-    def get_types(self, obj):
-        """Formats type field for display"""
-        if isinstance(obj.type, list):
-            return ", ".join(obj.type[:3]) + ("..." if len(obj.type) > 3 else "")
-        return obj.type
-
-    get_types.short_description = "Tipos"
-    get_types.admin_order_field = "type"
+    # 👇 Método corrigido para mostrar categorias
+    def get_categories(self, obj):
+        """Returns categories as string"""
+        return ", ".join([cat.name for cat in obj.categories.all()]) or "-"
+    get_categories.short_description = "Categorias"
+    get_categories.admin_order_field = "categories"
 
     def phone(self, obj):
         """Shows main or mobile phone"""
-        return obj.phone or obj.mobile_phone
-
+        return obj.phone or obj.mobile_phone or "-"
     phone.short_description = "Telefone"
 
     def email(self, obj):
         """Returns email"""
-        return obj.email
-
+        return obj.email or "-"
     email.short_description = "Email"
 
     def city(self, obj):
         """Returns city"""
-        return obj.city
-
+        return obj.city or "-"
     city.short_description = "Cidade"
     city.admin_order_field = "city"
 
@@ -162,13 +166,11 @@ class ProducerAdmin(admin.ModelAdmin):
     def activate_producers(self, request, queryset):
         updated = queryset.update(is_active=True)
         self.message_user(request, f"{updated} produtores ativados.")
-
     activate_producers.short_description = "Ativar produtores selecionados"
 
     def deactivate_producers(self, request, queryset):
         updated = queryset.update(is_active=False)
         self.message_user(request, f"{updated} produtores desativados.")
-
     deactivate_producers.short_description = "Desativar produtores selecionados"
 
 
@@ -178,3 +180,11 @@ class ProducerImageAdmin(admin.ModelAdmin):
     list_filter = ["producer"]
     search_fields = ["producer__name", "caption"]
     ordering = ["producer", "order"]
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ["name", "slug"]
+    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ["name"]
+    ordering = ["name"]

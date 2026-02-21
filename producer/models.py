@@ -19,12 +19,6 @@ class Producer(models.Model):
     name = models.CharField(
         max_length=255, help_text="Nome do produtor", verbose_name="Nome"
     )
-    type = models.JSONField(
-        verbose_name="Tipo(s)",
-        help_text='Selecione os tipos de produção (ex: "Legumes", "Fruta")',
-        default=list,
-        blank=True,
-    )
     description = models.TextField(
         verbose_name="Descrição",
         help_text="Descrição do produtor e seus produtos",
@@ -88,6 +82,8 @@ class Producer(models.Model):
         null=True,
         help_text="Formato: 1234-123",
     )
+    latitude = models.FloatField(null=True, blank=True, verbose_name="Latitude")
+    longitude = models.FloatField(null=True, blank=True, verbose_name="Longitude")
     facebook = models.URLField(
         verbose_name="Facebook",
         max_length=255,
@@ -138,9 +134,27 @@ class Producer(models.Model):
         ordering = ["name"]
         indexes = [
             models.Index(fields=["name"]),
-            models.Index(fields=["type"]),
             models.Index(fields=["city"]),
         ]
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Categoria")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug")
+    producer = models.ManyToManyField(
+        Producer,
+        related_name="categories",
+        verbose_name="Produtores",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Categoria de filtro"
+        verbose_name_plural = "Categorias de filtro"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
