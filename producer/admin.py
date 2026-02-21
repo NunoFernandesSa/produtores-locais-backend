@@ -16,9 +16,13 @@ TYPE_CHOICES = [
     ("carnes", "Carnes"),
 ]
 
+admin.site.site_header = "Produtores Locais"
+admin.site.site_title = "Produtores Locais"
+admin.site.index_title = "Bem-vindo ao Painel de Controlo"
+
 
 class ProducerImageInline(admin.TabularInline):
-    """Inline  for gallery images"""
+    """Inline for gallery images"""
 
     model = ProducerImage
     extra = 3
@@ -31,7 +35,7 @@ class ProducerAdminForm(forms.ModelForm):
 
     type = forms.MultipleChoiceField(
         choices=TYPE_CHOICES,
-        widget=forms.CheckboxSelectMultiple,  # ou SelectMultiple para dropdown
+        widget=forms.CheckboxSelectMultiple,
         required=False,
         label="Tipo(s)",
     )
@@ -40,9 +44,6 @@ class ProducerAdminForm(forms.ModelForm):
         model = Producer
         fields = "__all__"
         widgets = {
-            "type": forms.Textarea(
-                attrs={"rows": 2, "placeholder": '["Legumes", "Fruta"] ou "Legumes"'}
-            ),
             "products": forms.Textarea(
                 attrs={"rows": 3, "placeholder": '["Queijo de Cabra", "Requeijão"]'}
             ),
@@ -52,15 +53,15 @@ class ProducerAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.type:
-            # Converte o JSON existente para lista de valores
+            # Convert json to list of values
             if isinstance(self.instance.type, list):
                 self.initial["type"] = [t.lower() for t in self.instance.type]
             elif isinstance(self.instance.type, str):
                 self.initial["type"] = [self.instance.type.lower()]
 
     def clean_type(self):
-        """Cleans the type field"""
-        data = self.cleaned_data["type"]
+        """Converts the list of checkboxes back to JSON"""
+        data = self.cleaned_data.get("type", [])
         return list(data) if data else []
 
 
@@ -69,16 +70,15 @@ class ProducerAdmin(admin.ModelAdmin):
     form = ProducerAdminForm
     inlines = [ProducerImageInline]
 
-    # Campos a mostrar na lista
     list_display = ["name", "get_types", "city", "phone", "email", "is_active"]
 
-    # Filtros laterais
+    # Side filters
     list_filter = ["is_active", "city", "state", "created_at"]
 
-    # Campos de busca
+    # Search fields
     search_fields = ["name", "description", "email", "phone", "city"]
 
-    # Organização do formulário em secções
+    # Form sections
     fieldsets = [
         ("Informação Básica", {"fields": ["name", "type", "description", "is_active"]}),
         (
@@ -117,21 +117,21 @@ class ProducerAdmin(admin.ModelAdmin):
         ),
     ]
 
-    # Campos apenas leitura
+    # Read-only fields
     readonly_fields = ["created_at", "updated_at"]
 
-    # Paginação
+    # Pagination
     list_per_page = 25
 
-    # Ordenação padrão
+    # Default ordering
     ordering = ["name"]
 
-    # Ações em massa personalizadas
+    # Custom actions
     actions = ["activate_producers", "deactivate_producers"]
 
-    # Métodos personalizados para list_display
+    # Methods for list_display
     def get_types(self, obj):
-        """Formata o campo type para exibição"""
+        """Formats type field for display"""
         if isinstance(obj.type, list):
             return ", ".join(obj.type[:3]) + ("..." if len(obj.type) > 3 else "")
         return obj.type
@@ -140,25 +140,25 @@ class ProducerAdmin(admin.ModelAdmin):
     get_types.admin_order_field = "type"
 
     def phone(self, obj):
-        """Mostra telefone principal ou móvel"""
+        """Shows main or mobile phone"""
         return obj.phone or obj.mobile_phone
 
     phone.short_description = "Telefone"
 
     def email(self, obj):
-        """Retorna email"""
+        """Returns email"""
         return obj.email
 
     email.short_description = "Email"
 
     def city(self, obj):
-        """Retorna cidade"""
+        """Returns city"""
         return obj.city
 
     city.short_description = "Cidade"
     city.admin_order_field = "city"
 
-    # Ações em massa
+    # Custom actions
     def activate_producers(self, request, queryset):
         updated = queryset.update(is_active=True)
         self.message_user(request, f"{updated} produtores ativados.")

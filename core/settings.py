@@ -36,21 +36,6 @@ INSTALLED_APPS = [
     "producer",
 ]
 
-JAZZMIN_SETTINGS = {
-    "site_title": "Administração Produtores Locais",
-    "site_header": "Produtores Locais",
-    "site_brand": "🌿 Produtores Locais",
-    "welcome_sign": "Bem-vindo ao Painel de Controlo",
-    "copyright": "Produtores Locais do Minho",
-    "show_ui_builder": True,
-}
-
-
-JAZZMIN_UI_TWEAKS = {
-    "theme": "darkly",  # Tema inicial
-    "navbar": "navbar-dark navbar-primary",
-    "sidebar": "sidebar-dark-primary",
-}
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -68,7 +53,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
